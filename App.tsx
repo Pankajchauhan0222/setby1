@@ -184,6 +184,17 @@ const AuthScreen: React.FC<{ onLogin: (name: string, email: string) => void }> =
       {/* Right Form */}
       <div className="flex-1 flex items-center justify-center p-8 lg:p-16">
         <div className="w-full max-w-md space-y-8 animate-in slide-in-from-right-8 duration-500">
+          
+          {/* Mobile Logo Display */}
+          <div className="lg:hidden flex justify-center mb-6">
+             <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-brand-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-600/20">
+                  <TrendingUp className="text-white w-7 h-7" />
+                </div>
+                <span className="text-3xl font-bold text-slate-800 tracking-tight">Setby</span>
+             </div>
+          </div>
+
           <div className="text-center lg:text-left">
             <h2 className="text-3xl font-bold text-slate-900 mb-2">{isLogin ? 'Welcome back' : 'Create an account'}</h2>
             <p className="text-slate-500">
