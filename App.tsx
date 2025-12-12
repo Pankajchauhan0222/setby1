@@ -43,14 +43,14 @@ const FEATURED_PRODUCTS = [
 ];
 
 const PARTNER_STORES = [
-  { id: 'amazon', name: 'Amazon', color: 'bg-[#FF9900]', textColor: 'text-white' },
-  { id: 'flipkart', name: 'Flipkart', color: 'bg-[#2874f0]', textColor: 'text-white' },
-  { id: 'ajio', name: 'Ajio', color: 'bg-[#2c4152]', textColor: 'text-white' },
-  { id: 'tataluxury', name: 'Tata Luxury', color: 'bg-black', textColor: 'text-white' },
-  { id: 'kapoorwatch', name: 'Kapoor Watch', color: 'bg-[#0f172a]', textColor: 'text-white' },
-  { id: 'reliancedigital', name: 'Reliance Digital', color: 'bg-[#e11b22]', textColor: 'text-white' },
-  { id: 'shoppersstop', name: 'Shoppers Stop', color: 'bg-black', textColor: 'text-white' },
-  { id: 'goodearth', name: 'Good Earth', color: 'bg-[#be185d]', textColor: 'text-white' },
+  { id: 'amazon', name: 'Amazon', domain: 'amazon.in' },
+  { id: 'flipkart', name: 'Flipkart', domain: 'flipkart.com' },
+  { id: 'ajio', name: 'Ajio', domain: 'ajio.com' },
+  { id: 'tataluxury', name: 'Tata Luxury', domain: 'tataluxury.com' },
+  { id: 'kapoorwatch', name: 'Kapoor Watch', domain: 'kapoorwatch.com' },
+  { id: 'reliancedigital', name: 'Reliance Digital', domain: 'reliancedigital.in' },
+  { id: 'shoppersstop', name: 'Shoppers Stop', domain: 'shoppersstop.com' },
+  { id: 'goodearth', name: 'Good Earth', domain: 'goodearth.in' },
 ];
 
 // --- Confetti Component ---
@@ -277,7 +277,8 @@ const AuthScreen: React.FC<{ onLogin: (name: string, email: string) => void }> =
 const CustomerProfile: React.FC<{ 
   user: UserState; 
   onUpdateUser: (updates: Partial<UserState>) => void;
-}> = ({ user, onUpdateUser }) => {
+  onBack: () => void;
+}> = ({ user, onUpdateUser, onBack }) => {
   const [activeTab, setActiveTab] = useState<'details' | 'kyc' | 'rewards' | 'notifications'>('details');
   const [kycLoading, setKycLoading] = useState(false);
   
@@ -351,6 +352,11 @@ const CustomerProfile: React.FC<{
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
+       <div>
+          <Button variant="outline" onClick={onBack} className="mb-4 text-sm">
+            ← Back to Dashboard
+          </Button>
+       </div>
        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-6">
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-brand-100 flex items-center justify-center text-3xl font-bold text-brand-600 border-4 border-white shadow-lg overflow-hidden">
@@ -738,6 +744,7 @@ const Dashboard: React.FC<{
 const CreateGoal: React.FC<{ onCancel: () => void; onSave: (goal: Goal) => void }> = ({ onCancel, onSave }) => {
   const [step, setStep] = useState<'SELECT' | 'CONFIGURE'>('SELECT');
   const [loading, setLoading] = useState(false);
+  const [failedLogos, setFailedLogos] = useState<Record<string, boolean>>({});
   
   const [formData, setFormData] = useState({
     title: '',
@@ -841,6 +848,9 @@ const CreateGoal: React.FC<{ onCancel: () => void; onSave: (goal: Goal) => void 
   if (step === 'SELECT') {
     return (
        <div className="max-w-4xl mx-auto animate-in fade-in duration-500">
+         <Button variant="outline" onClick={onCancel} className="mb-4 text-sm">
+            ← Back to Dashboard
+         </Button>
          <div className="flex justify-between items-center mb-6">
             <div>
                 <h2 className="text-2xl font-bold text-slate-800">What are you saving for?</h2>
@@ -857,9 +867,18 @@ const CreateGoal: React.FC<{ onCancel: () => void; onSave: (goal: Goal) => void 
                     <button
                         key={partner.id}
                         onClick={() => selectPartner(partner)}
-                        className={`${partner.color} ${partner.textColor} h-16 rounded-lg font-bold text-lg shadow-sm hover:shadow-md hover:scale-105 transition-all flex items-center justify-center text-center px-2`}
+                        className="h-20 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-brand-400 hover:scale-105 transition-all flex items-center justify-center p-4 group"
                     >
-                        {partner.name}
+                        {failedLogos[partner.id] ? (
+                            <span className="text-slate-800 font-bold">{partner.name}</span>
+                        ) : (
+                            <img 
+                                src={`https://logo.clearbit.com/${partner.domain}`} 
+                                alt={partner.name} 
+                                className="max-h-8 md:max-h-10 w-auto object-contain filter transition-all duration-300 opacity-90 group-hover:opacity-100"
+                                onError={() => setFailedLogos(prev => ({ ...prev, [partner.id]: true }))}
+                            />
+                        )}
                     </button>
                 ))}
             </div>
@@ -1603,7 +1622,10 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       {/* Sidebar Navigation */}
       <aside className="w-full md:w-64 bg-white border-r border-slate-200 p-6 flex flex-col fixed md:relative z-20 h-full hidden md:flex">
-        <div className="flex items-center gap-3 mb-10">
+        <div 
+          className="flex items-center gap-3 mb-10 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => setView('DASHBOARD')}
+        >
           <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
             <TrendingUp className="text-white w-5 h-5" />
           </div>
@@ -1669,6 +1691,28 @@ const App: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+        
+        {/* Mobile Header: Logo & Profile */}
+        <div className="md:hidden flex justify-between items-center mb-6">
+           <div className="flex items-center gap-3" onClick={() => setView('DASHBOARD')}>
+              <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-600/20">
+                <TrendingUp className="text-white w-6 h-6" />
+              </div>
+              <span className="text-2xl font-bold text-slate-800 tracking-tight">Setby</span>
+           </div>
+           
+           <button 
+              onClick={() => handleNavigate('PROFILE')}
+              className="w-10 h-10 rounded-full bg-white border-2 border-slate-100 p-0.5 overflow-hidden flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm"
+            >
+                <img 
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0ea5e9&color=fff`} 
+                  alt="Profile" 
+                  className="w-full h-full rounded-full object-cover"
+                />
+            </button>
+        </div>
+
         <header className="flex justify-between items-center mb-8">
             <div>
                 <h1 className="text-2xl font-bold text-slate-800">
@@ -1720,6 +1764,7 @@ const App: React.FC = () => {
            <CustomerProfile 
              user={user} 
              onUpdateUser={(updates) => setUser({ ...user, ...updates })} 
+             onBack={() => setView('DASHBOARD')}
            />
         )}
       </main>
