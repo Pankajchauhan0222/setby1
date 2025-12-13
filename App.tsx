@@ -752,6 +752,40 @@ const Dashboard: React.FC<{
   );
 };
 
+// Helper for slider with input
+const SliderInput = ({ label, value, min, max, step, onChange, unit = '' }: { label: string, value: number, min: number, max: number, step: number, onChange: (val: string) => void, unit?: string }) => (
+  <div className="mb-6">
+    <div className="flex justify-between items-center mb-2">
+      <label className="text-sm font-medium text-slate-600">{label}</label>
+      <div className="flex items-center bg-white border border-slate-300 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 transition-all">
+        <span className="text-slate-500 font-semibold mr-1">{unit === '₹' ? '₹' : ''}</span>
+        <input
+          type="number"
+          value={value}
+          min={min}
+          max={max}
+          onChange={(e) => onChange(e.target.value)}
+          className="bg-transparent text-right font-bold text-slate-800 focus:outline-none w-24"
+        />
+        <span className="text-slate-500 text-sm ml-1">{unit !== '₹' ? unit : ''}</span>
+      </div>
+    </div>
+    <input
+      type="range"
+      min={min}
+      max={max}
+      step={step}
+      value={value || min}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-600 hover:accent-brand-500 transition-all"
+    />
+    <div className="flex justify-between text-xs text-slate-400 mt-1">
+      <span>{unit === '₹' ? '₹' : ''}{min.toLocaleString()}</span>
+      <span>{unit === '₹' ? '₹' : ''}{max.toLocaleString()}</span>
+    </div>
+  </div>
+);
+
 const CreateGoal: React.FC<{ onCancel: () => void; onSave: (goal: Goal) => void }> = ({ onCancel, onSave }) => {
   const [step, setStep] = useState<'SELECT' | 'CONFIGURE'>('SELECT');
   const [loading, setLoading] = useState(false);
@@ -759,10 +793,10 @@ const CreateGoal: React.FC<{ onCancel: () => void; onSave: (goal: Goal) => void 
   
   const [formData, setFormData] = useState({
     title: '',
-    targetAmount: '',
+    targetAmount: '50000',
     category: 'Vehicle',
     frequency: Frequency.MONTHLY,
-    months: '6',
+    months: '12',
     imageUrl: '',
   });
 
@@ -781,7 +815,7 @@ const CreateGoal: React.FC<{ onCancel: () => void; onSave: (goal: Goal) => void 
     setFormData({
       ...formData,
       title: `My ${partner.name} Wishlist`,
-      targetAmount: '',
+      targetAmount: '20000',
       category: 'Other',
       imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=400&q=80' // generic shopping
     });
@@ -797,7 +831,7 @@ const CreateGoal: React.FC<{ onCancel: () => void; onSave: (goal: Goal) => void 
     if (formData.frequency === Frequency.DAILY) paymentsPerMonth = 30;
 
     const totalPayments = months * paymentsPerMonth;
-    return Math.ceil(amount / totalPayments);
+    return Math.ceil(amount / Math.max(1, totalPayments));
   };
 
   const calculateRewards = () => {
@@ -931,20 +965,12 @@ const CreateGoal: React.FC<{ onCancel: () => void; onSave: (goal: Goal) => void 
       </div>
 
       <div className="space-y-4">
-        <Input 
-          label="Goal Title" 
-          placeholder="e.g. Yamaha R15"
-          value={formData.title}
-          onChange={e => setFormData({...formData, title: e.target.value})}
-        />
-        
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input 
-            label="Target Amount (₹)" 
-            type="number"
-            placeholder="2000"
-            value={formData.targetAmount}
-            onChange={e => setFormData({...formData, targetAmount: e.target.value})}
+            label="Goal Title" 
+            placeholder="e.g. Yamaha R15"
+            value={formData.title}
+            onChange={e => setFormData({...formData, title: e.target.value})}
           />
           <Select 
             label="Category"
@@ -958,57 +984,73 @@ const CreateGoal: React.FC<{ onCancel: () => void; onSave: (goal: Goal) => void 
             <option>Other</option>
           </Select>
         </div>
+        
+        <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 mt-4">
+           <div className="flex items-center gap-2 mb-6">
+              <div className="p-2 bg-white rounded-lg border border-slate-200 shadow-sm text-brand-600">
+                 <Banknote className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-slate-800 text-lg">Setby Saving calculator</h3>
+           </div>
+           
+           <SliderInput 
+             label="Setby Amount" 
+             value={parseInt(formData.targetAmount)} 
+             min={1000} 
+             max={500000} 
+             step={500} 
+             unit="₹"
+             onChange={(val) => setFormData({...formData, targetAmount: val})} 
+           />
 
-        <div className="grid grid-cols-2 gap-4">
-          <Input 
-            label="Duration (Months)" 
-            type="number"
-            min="1"
-            max="60"
-            value={formData.months}
-            onChange={e => setFormData({...formData, months: e.target.value})}
-          />
-          <Select 
-            label="Installment Frequency"
-            value={formData.frequency}
-            onChange={e => setFormData({...formData, frequency: e.target.value as Frequency})}
-          >
-            {Object.values(Frequency).map(f => <option key={f} value={f}>{f}</option>)}
-          </Select>
-        </div>
+           <SliderInput 
+             label="Duration" 
+             value={parseInt(formData.months)} 
+             min={1} 
+             max={60} 
+             step={1} 
+             unit="Months"
+             onChange={(val) => setFormData({...formData, months: val})} 
+           />
 
-        <div className="bg-slate-50 rounded-xl border border-slate-200 mt-6 divide-y divide-slate-200">
-          <div className="p-4 flex items-start gap-4">
-             <div className="p-3 bg-brand-100 rounded-lg text-brand-600">
-                <Clock className="w-6 h-6" />
+           <div className="mb-6">
+              <label className="text-sm font-medium text-slate-600 mb-2 block">Installment Frequency</label>
+              <div className="flex gap-2">
+                 {[Frequency.MONTHLY, Frequency.BIWEEKLY, Frequency.WEEKLY, Frequency.DAILY].map((freq) => (
+                    <button
+                       key={freq}
+                       onClick={() => setFormData({...formData, frequency: freq})}
+                       className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-all ${
+                          formData.frequency === freq 
+                          ? 'bg-brand-600 text-white border-brand-600 shadow-sm' 
+                          : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'
+                       }`}
+                    >
+                       {freq}
+                    </button>
+                 ))}
+              </div>
+           </div>
+
+           <div className="bg-gradient-to-br from-brand-50 to-brand-100 rounded-xl p-5 border border-brand-200">
+             <div className="flex justify-between items-start">
+               <div>
+                  <h4 className="text-brand-900 font-semibold mb-1">Your Installment</h4>
+                  <p className="text-xs text-brand-700">Pay this amount {formData.frequency.toLowerCase()}</p>
+               </div>
+               <div className="text-right">
+                  <span className="text-3xl font-bold text-brand-700">₹{calculateInstallment().toLocaleString()}</span>
+               </div>
              </div>
-             <div className="flex-1">
-                <h4 className="font-semibold text-brand-900 mb-1">Installment Plan</h4>
-                <div className="flex items-baseline gap-2 text-brand-800">
-                    <span className="text-2xl font-bold">₹{calculateInstallment().toLocaleString()}</span>
-                    <span className="text-sm font-medium">/ {formData.frequency.toLowerCase().replace('ly', '')}</span>
+             
+             <div className="mt-4 pt-4 border-t border-brand-200 flex items-center justify-between text-xs text-brand-800">
+                <div className="flex items-center gap-1">
+                   <Award className="w-4 h-4 text-amber-500" />
+                   <span>Earn <strong>{rewards.totalPoints.toLocaleString()} pts</strong> (₹{rewards.totalValue})</span>
                 </div>
-                <p className="text-xs text-brand-600 mt-1">
-                    Consistent savings unlock app contributions.
-                </p>
+                <div>{formData.months} months plan</div>
              </div>
-          </div>
-
-          <div className="p-4 flex items-start gap-4 bg-amber-50/50">
-             <div className="p-3 bg-amber-100 rounded-lg text-amber-600">
-                <Award className="w-6 h-6" />
-             </div>
-             <div className="flex-1">
-                <h4 className="font-semibold text-amber-900 mb-1">Estimated Rewards</h4>
-                <div className="flex items-baseline gap-2 text-amber-800">
-                    <span className="text-2xl font-bold">{rewards.totalPoints.toLocaleString()} pts</span>
-                    <span className="text-xs font-medium bg-amber-200 px-2 py-0.5 rounded-full text-amber-900">Value: ₹{rewards.totalValue.toLocaleString()}</span>
-                </div>
-                <p className="text-xs text-amber-700 mt-1">
-                    Earn <strong>{rewards.ratePercent}%</strong> back in rewards for timely payments over {formData.months} months.
-                </p>
-             </div>
-          </div>
+           </div>
         </div>
 
         <div className="flex justify-end gap-3 mt-8">
@@ -1148,7 +1190,7 @@ const GoalDetails: React.FC<{
                <img src={goal.imageUrl} alt={goal.title} className="w-32 h-32 rounded-xl object-cover shadow-sm bg-white" />
                <div className="flex-1">
                  <h1 className="text-2xl font-bold text-slate-800">{goal.title}</h1>
-                 <p className="text-slate-500 mb-4">{goal.category} • Target: ₹{goal.targetAmount.toLocaleString()}</p>
+                 <p className="text-slate-500 mb-4">{goal.category} • Setby Amount: ₹{goal.targetAmount.toLocaleString()}</p>
                  
                  {goal.aiMotivation && !isCompleted && (
                    <div className="bg-indigo-50 border border-indigo-100 p-3 rounded-lg text-sm text-indigo-800 mb-4 italic flex gap-2">
