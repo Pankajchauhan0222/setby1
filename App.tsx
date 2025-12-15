@@ -990,7 +990,7 @@ const CreateGoal: React.FC<{ onCancel: () => void; onSave: (goal: Goal) => void 
               <div className="p-2 bg-white rounded-lg border border-slate-200 shadow-sm text-brand-600">
                  <Banknote className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-slate-800 text-lg">Setby Saving calculator</h3>
+              <h3 className="font-bold text-slate-800 text-lg">SETBY Money Calculator</h3>
            </div>
            
            <SliderInput 
@@ -1035,7 +1035,7 @@ const CreateGoal: React.FC<{ onCancel: () => void; onSave: (goal: Goal) => void 
            <div className="bg-gradient-to-br from-brand-50 to-brand-100 rounded-xl p-5 border border-brand-200">
              <div className="flex justify-between items-start">
                <div>
-                  <h4 className="text-brand-900 font-semibold mb-1">Your Installment</h4>
+                  <h4 className="text-brand-900 font-semibold mb-1">Saving Installment</h4>
                   <p className="text-xs text-brand-700">Pay this amount {formData.frequency.toLowerCase()}</p>
                </div>
                <div className="text-right">
